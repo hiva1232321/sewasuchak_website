@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0f172a;
+  --color-foreground: #f8fafc;
+  --color-primary: #06b6d4;
+  --color-secondary: #8b5cf6;
+  --color-accent: #f472b6;
+}
+
+:root {
+  --background: #e7dede;
+  --foreground: #0f172a;
+  /* Slate 900 */
+  --primary: #0891b2;
+  /* Cyan 600 - slightly darker for contrast on white */
+  --secondary: #7c3aed;
+  /* Violet 600 */
+  --accent: #db2777;
+  /* Pink 600 */
+  --glass-border: rgba(15, 23, 42, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  /* More opaque for white theme */
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-outfit), sans-serif;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism Utilities */
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+.glass-card {
+  @apply glass rounded-2xl p-6 transition-all duration-300 hover:shadow-lg hover:border-white/20;
+}
+
+.glass-input {
+  @apply glass rounded-xl px-4 py-3 outline-none focus:border-cyan-400/50 transition-colors w-full text-sm placeholder:text-slate-400;
+}
+
+.btn-primary {
+  @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-cyan-500/25 active:scale-95;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String? // Optional for now if using simple auth or OAuth later
+  name      String?
+  role      String   @default("CITIZEN") // CITIZEN, OFFICIAL, ADMIN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  issues    Issue[]
+  votes     Vote[]
+  comments  Comment[]
+}
+
+model Issue {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  category    String // Road, Water, Electricity, etc.
+  latitude    Float
+  longitude   Float
+  address     String?
+  status      String    @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, REJECTED
+  priority    String    @default("NORMAL") // LOW, NORMAL, HIGH, CRITICAL
+  imageUrl    String?
+  videoUrl    String?
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  votes       Vote[]
+  comments    Comment[]
+  media       Media[]
+}
+
+model Media {
+  id        String   @id @default(uuid())
+  url       String
+  type      String   // IMAGE, VIDEO
+  issueId   String
+  issue     Issue    @relation(fields: [issueId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  userId    String
+  issueId   String
+  user      User     @relation(fields: [userId], references: [id])
+  issue     Issue    @relation(fields: [issueId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, issueId]) // One vote per user per issue
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  issueId   String
+  user      User     @relation(fields: [userId], references: [id])
+  issue     Issue    @relation(fields: [issueId], references: [id])
+  createdAt DateTime @default(now())
+}
