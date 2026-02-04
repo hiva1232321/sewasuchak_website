@@ -16,6 +16,7 @@ export default function ReportPage() {
     // Form State
     const [issueType, setIssueType] = useState('');
     const [description, setDescription] = useState('');
+    const [title, setTitle] = useState('');
     const [location, setLocation] = useState<{ lat: number, lng: number } | null>(null);
     const [files, setFiles] = useState<File[]>([]);
     const [otherType, setOtherType] = useState('');
@@ -35,6 +36,7 @@ export default function ReportPage() {
         const finalType = issueType === 'other' ? otherType : issueType;
         formData.append('type', finalType);
         formData.append('description', description);
+        formData.append('title', title);
         if (location) {
             formData.append('location', JSON.stringify(location));
         }
@@ -72,7 +74,7 @@ export default function ReportPage() {
 
     const isStep1Valid = !!issueType && (issueType !== 'other' || !!otherType);
     const isStep2Valid = !!location;
-    const isStep3Valid = !!description;
+    const isStep3Valid = !!description && !!title;
 
     return (
         <div className="min-h-screen pt-24 pb-12 bg-slate-50">
@@ -147,6 +149,17 @@ export default function ReportPage() {
                     {step === 3 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                             <MediaUpload onFileSelect={setFiles} />
+
+                            <div>
+                                <label className="text-sm font-semibold text-slate-700 mb-2 block">Report Title</label>
+                                <input
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="Brief title (e.g., Broken pipe at Main St)"
+                                    className="glass-input bg-slate-50 border-slate-200 focus:bg-white w-full"
+                                />
+                            </div>
 
                             <div>
                                 <label className="text-sm font-semibold text-slate-700 mb-2 block">Description</label>

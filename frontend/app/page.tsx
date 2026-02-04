@@ -1,9 +1,41 @@
 "use client";
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 export default function Home() {
+  const [alerts, setAlerts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('http://localhost:3001/issues?priority=HIGH')
+      .then(res => res.json())
+      .then(data => {
+        // Ensure data is array
+        if (Array.isArray(data)) {
+          setAlerts(data);
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
+
+  const timeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " minutes ago";
+    return Math.floor(seconds) + " seconds ago";
+  };
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -117,63 +149,60 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {[
-              {
-                title: "Major Water Main Burst",
-                location: "Westside Industrial Park",
-                votes: 128,
-                category: "Water Supply",
-                status: "Reported",
-                time: "2 hours ago"
-              },
-              {
-                title: "Dangerous Pothole on High St",
-                location: "Downtown Crossroad",
-                votes: 94,
-                category: "Roads",
-                status: "In Progress",
-                time: "5 hours ago"
-              }
-            ].map((alert, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="glass-card group flex flex-col sm:flex-row gap-6 items-start"
-              >
-                <div className="w-full sm:w-48 h-32 rounded-xl bg-slate-800 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-transparent" />
-                  <div className="absolute inset-0 flex items-center justify-center text-slate-600 text-xs text-center p-4">
-                    Image Evidence Placeholder
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 text-[10px] font-bold uppercase tracking-wider">High Priority</span>
-                    <span className="text-xs text-slate-500">{alert.time}</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{alert.title}</h3>
-                  <div className="flex items-center gap-4 text-sm text-slate-400 mb-4">
-                    <span className="flex items-center gap-1">📍 {alert.location}</span>
-                    <span className="flex items-center gap-1">📁 {alert.category}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex -space-x-2">
-                        {[1, 2, 3].map(j => (
-                          <div key={j} className="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-700" />
-                        ))}
+            {alerts.length > 0 ? (
+              alerts.map((alert: any, i: number) => (
+                <motion.div
+                  key={alert.id || i}
+                  initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="glass-card group flex flex-col sm:flex-row gap-6 items-start"
+                >
+                  <div className="w-full sm:w-48 h-32 rounded-xl bg-slate-800 overflow-hidden relative">
+                    {alert.imageUrl ? (
+                      <img
+                        src={`http://localhost:3001${alert.imageUrl}`}
+                        alt={alert.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-slate-600 text-xs text-center p-4">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-transparent" />
+                        No Image Available
                       </div>
-                      <span className="text-xs text-slate-300 font-medium">+{alert.votes} Verification Votes</span>
-                    </div>
-                    <span className={`text-xs font-bold px-2 py-1 rounded-lg ${alert.status === 'In Progress' ? 'bg-amber-500/10 text-amber-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
-                      {alert.status}
-                    </span>
+                    )}
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 text-[10px] font-bold uppercase tracking-wider">High Priority</span>
+                      <span className="text-xs text-slate-500">{timeAgo(alert.createdAt)}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{alert.title}</h3>
+                    <div className="flex items-center gap-4 text-sm text-slate-400 mb-4">
+                      <span className="flex items-center gap-1">📍 {alert.address || "Location unavailable"}</span>
+                      <span className="flex items-center gap-1">📁 {alert.category}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex -space-x-2">
+                          {[1, 2, 3].map(j => (
+                            <div key={j} className="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-700" />
+                          ))}
+                        </div>
+                        <span className="text-xs text-slate-300 font-medium">+{alert._count?.votes || 0} Verification Votes</span>
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-lg ${alert.status === 'IN_PROGRESS' ? 'bg-amber-500/10 text-amber-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
+                        {alert.status === 'IN_PROGRESS' ? 'In Progress' : alert.status === 'OPEN' ? 'Reported' : alert.status}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-1 lg:col-span-2 text-center py-12 glass-card">
+                <p className="text-slate-400">No high priority alerts at the moment.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

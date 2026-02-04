@@ -22,7 +22,15 @@ const upload = multer({ storage });
 // Get all issues
 router.get('/', async (req: Request, res: Response) => {
     try {
+        const { priority } = req.query;
+
+        const whereClause: any = {};
+        if (priority) {
+            whereClause.priority = priority as string;
+        }
+
         const issues = await prisma.issue.findMany({
+            where: whereClause,
             orderBy: {
                 createdAt: 'desc'
             },
@@ -89,7 +97,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/', upload.array('media', 5), async (req: Request, res: Response): Promise<void> => {
     console.log("POST /issues received");
     try {
-        const { type, description, authorId } = req.body;
+        const { type, description, authorId, title } = req.body;
 
         // Parse location if it comes as string from FormData
         let location = req.body.location;
@@ -108,6 +116,29 @@ router.post('/', upload.array('media', 5), async (req: Request, res: Response): 
             console.log("Missing required fields", { type, description, location });
             res.status(400).json({ error: 'Missing required fields' });
             return;
+        }
+
+        // Reverse Geocoding
+        let address = "Location unavailable";
+        try {
+            if (location.lat && location.lng) {
+                const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}`, {
+                    headers: {
+                        'User-Agent': 'CivicConnect/1.0'
+                    }
+                });
+                if (geoRes.ok) {
+                    const geoData = await geoRes.json();
+                    address = geoData.display_name || "Location unavailable";
+                    // Try to shorten address for UI
+                    const parts = address.split(', ');
+                    if (parts.length > 2) {
+                        address = `${parts[0]}, ${parts[1]}, ${parts[parts.length - 1]}`;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Geocoding failed", error);
         }
 
         let imageUrl: string | null = null;
@@ -135,11 +166,12 @@ router.post('/', upload.array('media', 5), async (req: Request, res: Response): 
 
         const issue = await prisma.issue.create({
             data: {
-                title: `${type} Issue`,
+                title: title || `${type} Issue`,
                 description,
                 category: type,
                 latitude: typeof location.lat === 'number' ? location.lat : parseFloat(location.lat),
                 longitude: typeof location.lng === 'number' ? location.lng : parseFloat(location.lng),
+                address: address,
                 authorId: authorId || (await prisma.user.findFirst())?.id || "temp-user-id",
                 status: 'OPEN',
                 priority: 'NORMAL',
