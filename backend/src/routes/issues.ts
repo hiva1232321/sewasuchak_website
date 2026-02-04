@@ -53,6 +53,98 @@ router.get('/', async (req: Request, res: Response) => {
     }
 });
 
+// Check for nearby issues (Duplicate Detection)
+router.get('/nearby', async (req: Request, res: Response) => {
+    try {
+        const { lat, lng, radius = 10, category } = req.query;
+        console.log(`[API] /nearby requested: lat=${lat}, lng=${lng}, radius=${radius}, category=${category}`);
+
+        if (!lat || !lng) {
+            console.log("[API] /nearby missing lat/lng");
+            res.status(400).json({ error: 'Latitude and Longitude are required' });
+            return;
+        }
+
+        const userLat = parseFloat(lat as string);
+        const userLng = parseFloat(lng as string);
+        const searchRadius = parseFloat(radius as string); // in meters
+
+        // Calculate Bounding Box (approximate)
+        // 1 degree lat ~= 111.32 km = 111320 meters
+        const latDelta = searchRadius / 111320;
+        // 1 degree lng ~= 111.32 km * cos(lat)
+        const lngDelta = searchRadius / (111320 * Math.cos(userLat * (Math.PI / 180)));
+
+        const minLat = userLat - latDelta;
+        const maxLat = userLat + latDelta;
+        const minLng = userLng - lngDelta;
+        const maxLng = userLng + lngDelta;
+
+        console.log(`[API] Bounding Box: Lat [${minLat.toFixed(6)}, ${maxLat.toFixed(6)}], Lng [${minLng.toFixed(6)}, ${maxLng.toFixed(6)}]`);
+
+        // Fetch candidates within the bounding box (ALL categories)
+        const issues = await prisma.issue.findMany({
+            where: {
+                status: {
+                    in: ['OPEN', 'IN_PROGRESS']
+                },
+                // Removed category filter - scan ALL reports within radius
+                latitude: {
+                    gte: minLat,
+                    lte: maxLat
+                },
+                longitude: {
+                    gte: minLng,
+                    lte: maxLng
+                }
+            },
+            select: {
+                id: true,
+                title: true,
+                category: true,
+                latitude: true,
+                longitude: true,
+                description: true,
+                createdAt: true,
+                status: true
+            }
+        });
+
+        console.log(`[API] Found ${issues.length} candidates in bounding box`);
+
+        // Refine with Haversine Formula (Circle vs Square)
+        const nearbyIssues = issues.filter(issue => {
+            const R = 6371e3; // Earth radius in meters
+            const phi1 = userLat * Math.PI / 180;
+            const phi2 = issue.latitude * Math.PI / 180;
+            const dPhi = (issue.latitude - userLat) * Math.PI / 180;
+            const dLambda = (issue.longitude - userLng) * Math.PI / 180;
+
+            const a = Math.sin(dPhi / 2) * Math.sin(dPhi / 2) +
+                Math.cos(phi1) * Math.cos(phi2) *
+                Math.sin(dLambda / 2) * Math.sin(dLambda / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            const distance = R * c; // in meters
+
+            console.log(`[API] Candidate ${issue.id}: ${distance.toFixed(2)}m away`);
+
+            return distance <= searchRadius;
+        });
+
+        console.log(`[API] Returning ${nearbyIssues.length} matches within ${searchRadius}m`);
+
+        res.json({
+            found: nearbyIssues.length > 0,
+            count: nearbyIssues.length,
+            issues: nearbyIssues
+        });
+    } catch (error) {
+        console.error('Error finding nearby issues:', error);
+        res.status(500).json({ error: 'Failed to check nearby issues' });
+    }
+});
+
 // Get single issue
 router.get('/:id', async (req: Request, res: Response) => {
     try {

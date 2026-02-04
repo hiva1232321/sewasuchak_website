@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import LocationPicker from '@/components/LocationPicker';
 import IssueTypeSelector from '@/components/IssueTypeSelector';
 import MediaUpload from '@/components/MediaUpload';
+import DuplicateCheck from '@/components/DuplicateCheck';
+
 
 export default function ReportPage() {
     const router = useRouter();
@@ -134,12 +136,17 @@ export default function ReportPage() {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                             <LocationPicker onLocationSelect={(lat, lng) => setLocation({ lat, lng })} />
                             {location && (
-                                <div className="p-3 bg-cyan-50 rounded-lg border border-cyan-100 flex gap-2 items-start">
-                                    <div className="w-2 h-2 rounded-full bg-cyan-500 mt-1.5 shrink-0" />
-                                    <div>
-                                        <p className="text-xs font-semibold text-cyan-800">Coordinates Captured</p>
-                                        <p className="text-xs text-cyan-600 font-mono">{location.lat.toFixed(6)}, {location.lng.toFixed(6)}</p>
+                                <div className="space-y-3">
+                                    <div className="p-3 bg-cyan-50 rounded-lg border border-cyan-100 flex gap-2 items-start">
+                                        <div className="w-2 h-2 rounded-full bg-cyan-500 mt-1.5 shrink-0" />
+                                        <div>
+                                            <p className="text-xs font-semibold text-cyan-800">Coordinates Captured</p>
+                                            <p className="text-xs text-cyan-600 font-mono">{location.lat.toFixed(6)}, {location.lng.toFixed(6)}</p>
+                                        </div>
                                     </div>
+
+                                    {/* Duplicate Check Warning */}
+                                    <DuplicateCheck location={location} category={issueType} />
                                 </div>
                             )}
                         </motion.div>

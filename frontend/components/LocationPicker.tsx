@@ -52,9 +52,19 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
                     onLocationSelect(pos.lat, pos.lng);
                     setLoadingLoc(false);
                 },
-                () => {
-                    alert("Error fetching location.");
+                (error) => {
+                    console.error("Error fetching location:", error);
+                    let errorMessage = "Error fetching location.";
+                    if (error.code === error.PERMISSION_DENIED) errorMessage = "Location permission denied.";
+                    if (error.code === error.POSITION_UNAVAILABLE) errorMessage = "Location unavailable.";
+                    if (error.code === error.TIMEOUT) errorMessage = "Location request timed out.";
+                    alert(errorMessage);
                     setLoadingLoc(false);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
             );
         } else {

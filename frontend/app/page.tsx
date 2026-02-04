@@ -3,9 +3,15 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import LiveIssueTrackerWrapper from '@/components/LiveIssueTracker';
 
 export default function Home() {
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalReports: "Loading...",
+    resolvedIssues: "Loading...",
+    avgResponseTime: "Calculating..."
+  });
 
   useEffect(() => {
     fetch('http://localhost:3001/issues?priority=HIGH')
@@ -17,6 +23,17 @@ export default function Home() {
         }
       })
       .catch(err => console.error(err));
+
+    fetch('http://localhost:3001/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats({
+          totalReports: data.totalReports?.toString() || "0",
+          resolvedIssues: data.resolvedIssues?.toString() || "0",
+          avgResponseTime: data.avgResponseTime || "N/A"
+        });
+      })
+      .catch(err => console.error("Stats fetch error:", err));
   }, []);
 
   const timeAgo = (dateString: string) => {
@@ -54,50 +71,75 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+      <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
-            className="max-w-4xl mx-auto text-center"
-          >
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+
+            {/* Left: Live Tracker (Desktop) */}
             <motion.div
-              variants={itemVariants}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border-cyan-500/30 text-cyan-300 text-xs font-medium uppercase tracking-wider mb-6"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="hidden lg:block w-full lg:w-1/3 order-2 lg:order-1"
             >
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-              Live Issue Tracking System
+              <div className="relative">
+                {/* Glowing background for tracker */}
+                <div className="absolute inset-0 bg-cyan-500/20 blur-3xl -z-10 rounded-full opacity-50"></div>
+
+                <LiveIssueTrackerWrapper />
+              </div>
             </motion.div>
 
-            <motion.h1
-              variants={itemVariants}
-              className="text-5xl lg:text-7xl font-bold mb-8 leading-tight tracking-tight text-slate-900"
-            >
-              Transform Your City, <br />
-              <span className="bg-gradient-to-r from-cyan-600 to-violet-600 bg-clip-text text-transparent">One Report at a Time.</span>
-            </motion.h1>
-
-            <motion.p
-              variants={itemVariants}
-              className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed"
-            >
-              CivicConnect empowers citizens to report infrastructure issues instantly.
-              We use location intelligence and community voting to prioritize what matters most.
-            </motion.p>
-
+            {/* Right: Hero Content */}
             <motion.div
-              variants={itemVariants}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+              initial="hidden"
+              animate="visible"
+              variants={containerVariants}
+              className="w-full lg:w-2/3 text-center lg:text-left order-1 lg:order-2"
             >
-              <Link href="/report" className="btn-primary w-full sm:w-auto text-lg py-4 px-8 shadow-cyan-500/25">
-                Report an Issue
-              </Link>
-              <Link href="/map" className="px-8 py-4 rounded-xl glass border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold transition-all w-full sm:w-auto shadow-sm">
-                Explore Issue Map
-              </Link>
+              <motion.div
+                variants={itemVariants}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border-cyan-500/30 text-cyan-300 text-xs font-medium uppercase tracking-wider mb-6 mx-auto lg:mx-0"
+              >
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                Live Issue Tracking System
+              </motion.div>
+
+              <motion.h1
+                variants={itemVariants}
+                className="text-5xl lg:text-7xl font-bold mb-8 leading-tight tracking-tight text-slate-900"
+              >
+                Transform Your City, <br />
+                <span className="bg-gradient-to-r from-cyan-600 to-violet-600 bg-clip-text text-transparent">One Report at a Time.</span>
+              </motion.h1>
+
+              <motion.p
+                variants={itemVariants}
+                className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+              >
+                CivicConnect empowers citizens to report infrastructure issues instantly.
+                We use location intelligence and community voting to prioritize what matters most.
+              </motion.p>
+
+              <motion.div
+                variants={itemVariants}
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
+              >
+                <Link href="/report" className="btn-primary w-full sm:w-auto text-lg py-4 px-8 shadow-cyan-500/25">
+                  Report an Issue
+                </Link>
+                <Link href="/map" className="px-8 py-4 rounded-xl glass border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold transition-all w-full sm:w-auto shadow-sm">
+                  Explore Issue Map
+                </Link>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </div>
+
+          {/* Mobile Only Live Tracker (Below Hero Text) */}
+          <div className="block lg:hidden mt-16 flex justify-center">
+            <LiveIssueTrackerWrapper />
+          </div>
+
         </div>
 
         {/* Abstract Background Blobs */}
@@ -107,7 +149,7 @@ export default function Home() {
             rotate: [0, 90, 0],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none -z-10"
         />
       </section>
 
@@ -116,9 +158,9 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { label: "Issues Reported", value: "1,240+", color: "text-white" },
-              { label: "Resolved", value: "850+", color: "text-cyan-400" },
-              { label: "Avg. Response Time", value: "12hrs", color: "text-violet-400" }
+              { label: "Issues Reported", value: stats.totalReports, color: "text-white" },
+              { label: "Resolved", value: stats.resolvedIssues, color: "text-cyan-400" },
+              { label: "Avg. Response Time", value: stats.avgResponseTime, color: "text-violet-400" }
             ].map((stat, i) => (
               <motion.div
                 key={i}
