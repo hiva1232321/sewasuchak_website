@@ -14,7 +14,7 @@ app.use(express.json());
 
 // Health Check
 app.get('/', (req, res) => {
-    res.send('CivicConnect API is running');
+    res.send('Sewasuchak API is running');
 });
 
 app.use('/uploads', express.static('uploads'));

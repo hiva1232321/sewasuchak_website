@@ -216,7 +216,7 @@ router.post('/', upload.array('media', 5), async (req: Request, res: Response): 
             if (location.lat && location.lng) {
                 const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}`, {
                     headers: {
-                        'User-Agent': 'CivicConnect/1.0'
+                        'User-Agent': 'Sewasuchak/1.0'
                     }
                 });
                 if (geoRes.ok) {

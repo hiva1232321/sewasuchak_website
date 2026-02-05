@@ -9,7 +9,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'CivicConnect - Empowering Communities',
+  title: 'SewaSuchak - Empowering Communities',
   description: 'Report, track, and resolve public infrastructure issues with community power.',
 };
 

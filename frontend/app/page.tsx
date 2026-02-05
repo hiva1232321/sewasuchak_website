@@ -117,7 +117,7 @@ export default function Home() {
                 variants={itemVariants}
                 className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
               >
-                CivicConnect empowers citizens to report infrastructure issues instantly.
+                Sewasuchak empowers citizens to report infrastructure issues instantly.
                 We use location intelligence and community voting to prioritize what matters most.
               </motion.p>
 
@@ -262,7 +262,7 @@ export default function Home() {
             <p className="text-slate-400">Simple steps to make a big difference.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 ">
             {[
               { title: "Snap & Report", desc: "Take a photo, map the location, and submit details in seconds." },
               { title: "Community Verify", desc: "Neighbors vote to validate issues, ensuring priority for real problems." },
@@ -279,7 +279,7 @@ export default function Home() {
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/20 flex items-center justify-center mb-6 text-xl font-bold text-cyan-400 group-hover:scale-110 transition-transform">
                   {i + 1}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                <h3 className="text-xl font-bold text-black mb-3">{feature.title}</h3>
                 <p className="text-slate-400 leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
