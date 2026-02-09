@@ -5,9 +5,7 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 relative z-10">
                     <div className="col-span-1 md:col-span-2">
                         <div className="text-2xl font-bold tracking-tighter flex items-center gap-2 mb-6">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center">
-                                <span className="text-white text-lg">C</span>
-                            </div>
+                            <img             src="/logo.png"             alt="Sewasuchak Logo"             className="w-10 h-10 rounded-lg object-contain shadow-lg shadow-cyan-500/20"           />
                             <span className="text-white">सेवा<span className="text-cyan-400">सूचक</span></span>
                         </div>
                         <p className="text-white/50 max-w-sm leading-relaxed">

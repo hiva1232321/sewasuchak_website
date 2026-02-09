@@ -23,9 +23,11 @@ export default function Navbar() {
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold tracking-tighter flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <span className="text-white text-lg">C</span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Sewasuchak Logo"
+            className="w-10 h-10 rounded-lg object-contain shadow-lg shadow-cyan-500/20"
+          />
           <span className="text-slate-900">
             सेवा<span className="text-cyan-600">सूचक</span>
           </span>
