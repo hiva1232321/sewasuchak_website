@@ -58,7 +58,9 @@ app.get('/stats', async (req, res) => {
 });
 
 import issueRoutes from './routes/issues';
+import authRoutes from './routes/auth';
 app.use('/issues', issueRoutes);
+app.use('/auth', authRoutes);
 
 // Seed a default user if none exists (for development)
 const seedDefaultUser = async () => {

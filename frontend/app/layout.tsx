@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { AuthProvider } from '@/context/AuthContext';
 
 export default function RootLayout({
   children,
@@ -27,13 +28,15 @@ export default function RootLayout({
         <div className="fixed inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black pointer-events-none" />
         <div className="fixed inset-0 z-[-1] bg-[url('/grid.svg')] opacity-20 pointer-events-none" />
 
-        <Navbar />
+        <AuthProvider>
+          <Navbar />
 
-        <main className="relative z-10">
-          {children}
-        </main>
+          <main className="relative z-10">
+            {children}
+          </main>
 
-        <Footer />
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

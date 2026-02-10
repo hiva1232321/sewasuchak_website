@@ -8,16 +8,27 @@ datasource db {
 }
 
 model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  password   String
+  name       String
+  phone      String?
+  role       String   @default("CITIZEN") // CITIZEN, OFFICIAL, ADMIN
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  issues     Issue[]
+  votes      Vote[]
+  comments   Comment[]
+}
+
+model Otp {
   id        String   @id @default(uuid())
-  email     String   @unique
-  password  String? // Optional for now if using simple auth or OAuth later
-  name      String?
-  role      String   @default("CITIZEN") // CITIZEN, OFFICIAL, ADMIN
+  email     String
+  code      String
+  type      String   // SIGNUP, REPORT
+  expiresAt DateTime
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  issues    Issue[]
-  votes     Vote[]
-  comments  Comment[]
 }
 
 model Issue {
