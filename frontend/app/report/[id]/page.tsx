@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Calendar, User, ThumbsUp, MessageSquare, Play, Video } from 'lucide-react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import StatusCard from '@/components/StatusCard';
 
 interface IssueDetail {
     id: string;
@@ -24,10 +25,17 @@ interface IssueDetail {
         type: string;
     }[];
     createdAt: string;
+    updatedAt: string;
     author: {
         name: string | null;
         email: string | null;
     };
+    department?: {
+        name: string;
+    };
+    govNote?: string;
+    rejectionReason?: string;
+    proofImageUrl?: string;
     _count: {
         votes: number;
     };
@@ -168,6 +176,16 @@ export default function ReportDetailPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content Column */}
                     <div className="lg:col-span-2 space-y-8">
+
+                        {/* Status Card */}
+                        <StatusCard
+                            status={issue.status}
+                            updatedAt={issue.updatedAt}
+                            departmentName={issue.department?.name}
+                            govNote={issue.govNote}
+                            rejectionReason={issue.rejectionReason}
+                            proofImageUrl={issue.proofImageUrl}
+                        />
 
                         {/* Media Section - Enhanced UI */}
                         {mediaItems.length > 0 ? (

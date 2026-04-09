@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut, User, Menu, X } from "lucide-react";
 
@@ -9,6 +10,9 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const pathname = usePathname();
+
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +22,10 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  if (pathname?.startsWith("/gov-portal") || pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <nav
@@ -41,7 +49,10 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <Link href="/feed" className="nav-link">Live Feed</Link>
           <Link href="/map" className="nav-link">Issue Map</Link>
-          <Link href="/portal" className="nav-link">Government Portal</Link>
+          <Link href="/gov-portal" className="nav-link">Gov Portal</Link>
+          {user?.role === 'ADMIN' && (
+              <Link href="/admin" className="nav-link text-emerald-600 font-semibold">Admin Panel</Link>
+          )}
 
           <Link href="/report" className="btn-primary text-sm group">
             Report Issue
@@ -101,7 +112,10 @@ export default function Navbar() {
           <div className="container mx-auto px-6 py-4 flex flex-col gap-3">
             <Link href="/feed" className="py-2 text-slate-700 font-medium" onClick={() => setMenuOpen(false)}>Live Feed</Link>
             <Link href="/map" className="py-2 text-slate-700 font-medium" onClick={() => setMenuOpen(false)}>Issue Map</Link>
-            <Link href="/portal" className="py-2 text-slate-700 font-medium" onClick={() => setMenuOpen(false)}>Government Portal</Link>
+            <Link href="/gov-portal" className="py-2 text-slate-700 font-medium" onClick={() => setMenuOpen(false)}>Gov Portal</Link>
+            {user?.role === 'ADMIN' && (
+                <Link href="/admin" className="py-2 text-emerald-600 font-bold" onClick={() => setMenuOpen(false)}>Admin Panel</Link>
+            )}
             <Link href="/report" className="py-2 text-cyan-600 font-semibold" onClick={() => setMenuOpen(false)}>Report Issue →</Link>
 
             {!isLoading && (

@@ -39,17 +39,24 @@ model Issue {
   latitude    Float
   longitude   Float
   address     String?
-  status      String    @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, REJECTED
-  priority    String    @default("NORMAL") // LOW, NORMAL, HIGH, CRITICAL
-  imageUrl    String?
-  videoUrl    String?
-  authorId    String
-  author      User      @relation(fields: [authorId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  votes       Vote[]
-  comments    Comment[]
-  media       Media[]
+  status          String      @default("REPORTED") // REPORTED, ACKNOWLEDGED, IN_PROGRESS, RESOLVED, REJECTED
+  priority        String      @default("NORMAL") // LOW, NORMAL, HIGH, CRITICAL
+  imageUrl        String?
+  videoUrl        String?
+  authorId        String
+  author          User        @relation(fields: [authorId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  votes           Vote[]
+  comments        Comment[]
+  media           Media[]
+  
+  // Government Portal Fields
+  departmentId    String?
+  department      Department? @relation(fields: [departmentId], references: [id])
+  rejectionReason String?
+  proofImageUrl   String?
+  govNote         String?
 }
 
 model Media {
@@ -80,4 +87,43 @@ model Comment {
   user      User     @relation(fields: [userId], references: [id])
   issue     Issue    @relation(fields: [issueId], references: [id])
   createdAt DateTime @default(now())
+}
+
+model Department {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  logoUrl     String?
+  projects    Project[]
+  issues      Issue[]
+  createdAt   DateTime  @default(now())
+}
+
+model Project {
+  id           String          @id @default(uuid())
+  title        String
+  description  String
+  budget       Float
+  spentAmount  Float           @default(0)
+  startDate    DateTime
+  endDate      DateTime?
+  status       String          @default("PLANNED") // PLANNED, ONGOING, COMPLETED, DELAYED
+  latitude     Float?
+  longitude    Float?
+  address      String?
+  departmentId String
+  department   Department      @relation(fields: [departmentId], references: [id])
+  updates      ProjectUpdate[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model ProjectUpdate {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  imageUrl    String?
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  createdAt   DateTime @default(now())
 }

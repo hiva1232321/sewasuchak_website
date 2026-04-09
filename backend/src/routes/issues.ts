@@ -3,6 +3,7 @@ import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import multer from 'multer';
 import path from 'path';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -169,7 +170,8 @@ router.get('/:id', async (req: Request, res: Response) => {
                 _count: {
                     select: { votes: true }
                 },
-                media: true // Include media
+                media: true, // Include media
+                department: true // Include department
             }
         });
 
@@ -347,6 +349,80 @@ router.post('/:id/vote', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error voting:', error);
         res.status(500).json({ error: 'Failed to vote' });
+    }
+});
+
+// Update issue status (Official/Admin only)
+router.patch('/:id/status', authMiddleware, upload.single('proofImage'), async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const { status, rejectionReason, departmentId, govNote } = req.body;
+        const userId = req.userId;
+
+        // Check permissions
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user || (user.role !== 'OFFICIAL' && user.role !== 'ADMIN')) {
+            console.log(`[Authorization Failed] User ${userId} with role ${user?.role} attempted to update status`);
+            res.status(403).json({ error: 'Unauthorized: Only Officials/Admins can update status' });
+            return;
+        }
+
+        // Validate status
+        const allowedStatuses = ['REPORTED', 'ACKNOWLEDGED', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'];
+        if (!allowedStatuses.includes(status)) {
+            res.status(400).json({ error: 'Invalid status' });
+            return;
+        }
+
+        // Conditional validation
+        let proofImageUrl = req.body.proofImageUrl;
+
+        if (req.file) {
+            proofImageUrl = `/uploads/${req.file.filename}`;
+        }
+
+        if (status === 'RESOLVED' && !proofImageUrl) {
+            res.status(400).json({ error: 'Proof image is required for Resolved status' });
+            return;
+        }
+
+        if (status === 'REJECTED' && !rejectionReason) {
+            res.status(400).json({ error: 'Rejection reason is required for Rejected status' });
+            return;
+        }
+
+        const updateData: any = { status };
+        // Clean undefined values
+        if (departmentId) {
+            if (user.role !== 'ADMIN') {
+                res.status(403).json({ error: 'Unauthorized: Only Admins can assign departments' });
+                return;
+            }
+            updateData.departmentId = departmentId;
+        }
+        if (rejectionReason) updateData.rejectionReason = rejectionReason;
+        if (proofImageUrl) updateData.proofImageUrl = proofImageUrl;
+        if (govNote) updateData.govNote = govNote;
+
+        // Reset fields if changing status (e.g. from Rejected to In Progress, clear reason)
+        if (status !== 'REJECTED') updateData.rejectionReason = null;
+        if (status !== 'RESOLVED' && !proofImageUrl) {
+            // Optional: keep proof image or clear it? Better to keep if it was there? 
+            // Requirement says proof only for Resolved.
+            // But if I move from Resolved -> In Progress, maybe I keep it? 
+            // Let's leave it for now.
+        }
+
+        const issue = await prisma.issue.update({
+            where: { id },
+            data: updateData
+        });
+
+        console.log(`[Status Update] Issue ${id} updated to ${status} by ${user.email}`);
+        res.json(issue);
+    } catch (error) {
+        console.error("Error updating status:", error);
+        res.status(500).json({ error: "Failed to update status" });
     }
 });
 
