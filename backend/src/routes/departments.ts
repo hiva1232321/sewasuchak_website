@@ -88,7 +88,13 @@ router.delete('/:id', authMiddleware, async (req: Request, res: Response): Promi
         await prisma.department.delete({ where: { id } });
 
         res.json({ message: 'Department deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2003') {
+            res.status(400).json({ 
+                error: 'Cannot delete department: It is currently assigned to one or more issues or projects. Please reassign those items before deleting.' 
+            });
+            return;
+        }
         console.error('Error deleting department:', error);
         res.status(500).json({ error: 'Failed to delete department' });
     }
