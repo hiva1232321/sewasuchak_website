@@ -92,8 +92,8 @@ export default function GovIssuesPage() {
                         <span className="text-lg font-bold text-slate-900">Issues</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Link href="/" className="text-sm text-gray-600 hover:text-blue-600 font-medium transition-colors">
-                            Exit Portal
+                        <Link href="/gov-portal" className="text-sm text-gray-600 hover:text-blue-600 font-medium transition-colors">
+                            Gov Portal
                         </Link>
                         {user ? (
                             <div className="flex items-center gap-3 border-l pl-4 border-gray-200">
@@ -109,7 +109,7 @@ export default function GovIssuesPage() {
                                 </button>
                             </div>
                         ) : (
-                            <Link href="/login" className="text-sm text-blue-600 hover:underline border-l pl-4 border-gray-200">Sign In Here</Link>
+                            <Link href="/login" className="text-sm text-blue-600 hover:underline font-medium border-l pl-4 border-gray-200">Sign In Here</Link>
                         )}
                     </div>
                 </div>
