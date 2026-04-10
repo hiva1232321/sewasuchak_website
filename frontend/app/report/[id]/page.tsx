@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Calendar, User, ThumbsUp, MessageSquare, Play, Video } from 'lucide-react';
@@ -49,6 +50,8 @@ const mapContainerStyle = {
 
 export default function ReportDetailPage() {
     const { id } = useParams();
+    const router = useRouter();
+    const { user } = useAuth();
     const [issue, setIssue] = useState<IssueDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [voting, setVoting] = useState(false);
@@ -94,14 +97,19 @@ export default function ReportDetailPage() {
 
     const handleUpvote = async () => {
         if (!issue || voting) return;
+
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+
         setVoting(true);
 
         try {
             const res = await fetch(`http://localhost:3001/issues/${issue.id}/vote`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // Sending a mock userId if needed, or let backend handle default
-                body: JSON.stringify({})
+                body: JSON.stringify({ userId: user.id })
             });
 
             if (res.ok) {

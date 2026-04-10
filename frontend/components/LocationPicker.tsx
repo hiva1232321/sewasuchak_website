@@ -53,7 +53,7 @@ export default function LocationPicker({ onLocationSelect }: LocationPickerProps
                     setLoadingLoc(false);
                 },
                 (error) => {
-                    console.error("Error fetching location:", error);
+                    console.warn("Location fetching warning:", error.message || "Unknown error");
                     let errorMessage = "Error fetching location.";
                     if (error.code === error.PERMISSION_DENIED) errorMessage = "Location permission denied.";
                     if (error.code === error.POSITION_UNAVAILABLE) errorMessage = "Location unavailable.";

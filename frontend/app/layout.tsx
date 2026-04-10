@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/context/AuthContext';
+import NearbyIssueTracker from '@/components/NearbyIssueTracker';
 
 export default function RootLayout({
   children,
@@ -34,6 +35,8 @@ export default function RootLayout({
           <main className="relative z-10">
             {children}
           </main>
+          
+          <NearbyIssueTracker />
 
           <Footer />
         </AuthProvider>

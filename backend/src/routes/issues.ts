@@ -107,7 +107,8 @@ router.get('/nearby', async (req: Request, res: Response) => {
                 longitude: true,
                 description: true,
                 createdAt: true,
-                status: true
+                status: true,
+                authorId: true
             }
         });
 

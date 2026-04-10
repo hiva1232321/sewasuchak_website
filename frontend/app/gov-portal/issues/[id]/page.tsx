@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Upload, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Upload, AlertCircle, Loader2, Check, X } from 'lucide-react';
 import StatusCard from '@/components/StatusCard';
 
 export default function GovIssueDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -24,6 +24,42 @@ export default function GovIssueDetailPage({ params }: { params: Promise<{ id: s
     const [departmentId, setDepartmentId] = useState(''); // Could list depts
     const [proofImage, setProofImage] = useState<File | null>(null);
     const [error, setError] = useState('');
+    const [hasInteracted, setHasInteracted] = useState(false);
+
+    useEffect(() => {
+        if (!id) return;
+        const interactedRaw = localStorage.getItem('interacted_issues');
+        const interactedIds = interactedRaw ? JSON.parse(interactedRaw) : [];
+        if (interactedIds.includes(id)) {
+            setHasInteracted(true);
+        }
+    }, [id]);
+
+    const handleVerify = async (isConfirm: boolean) => {
+        const interactedRaw = localStorage.getItem('interacted_issues');
+        const interactedIds = interactedRaw ? JSON.parse(interactedRaw) : [];
+        if (!interactedIds.includes(id)) {
+            interactedIds.push(id);
+            localStorage.setItem('interacted_issues', JSON.stringify(interactedIds));
+        }
+        setHasInteracted(true);
+
+        if (isConfirm) {
+            try {
+                const body: any = {};
+                if (user?.id) body.userId = user.id;
+
+                await fetch(`http://localhost:3001/issues/${id}/vote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                alert("Thanks! Your confirmation has been officially recorded.");
+            } catch (e) {
+                console.error("Failed to vote upon confirm", e);
+            }
+        }
+    };
 
     const [departments, setDepartments] = useState<{id: string, name: string}[]>([]);
 
@@ -131,6 +167,28 @@ export default function GovIssueDetailPage({ params }: { params: Promise<{ id: s
                             proofImageUrl={issue.proofImageUrl}
                         />
                     </section>
+
+                    {/* Community Verification */}
+                    {!hasInteracted && (
+                        <section className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl shadow-sm border border-blue-100 p-6 relative overflow-hidden">
+                            <h3 className="text-lg font-bold text-blue-900 mb-2">Neighborhood Verification</h3>
+                            <p className="text-blue-700 mb-5 font-medium text-sm">Are you near this location? We need locals to verify this problem. Have you noticed this similar problem?</p>
+                            <div className="flex items-center gap-4">
+                                <button 
+                                    onClick={() => handleVerify(true)}
+                                    className="cursor-pointer bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-blue-500/30 transition-all flex items-center justify-center gap-2 group"
+                                >
+                                    <Check className="w-5 h-5 group-hover:scale-110 transition-transform" /> Yes, I explicitly confirm
+                                </button>
+                                <button 
+                                    onClick={() => handleVerify(false)}
+                                    className="cursor-pointer bg-white border border-blue-200 text-blue-600 font-bold px-6 py-2.5 rounded-xl shadow-sm hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <X className="w-5 h-5" /> No, doesn't exist
+                                </button>
+                            </div>
+                        </section>
+                    )}
 
                     {/* Update Form - Only for Admin or Official */}
                     {user && (user.role === 'OFFICIAL' || user.role === 'ADMIN') && (
