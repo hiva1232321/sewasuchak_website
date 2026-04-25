@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, MapPin, Calendar, Briefcase, Plus, Loader2, AlertCircle, CheckCircle, Clock, Image as ImageIcon, Crosshair, BarChart3, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Briefcase, Plus, Loader2, AlertCircle, CheckCircle, Clock, Image as ImageIcon, Crosshair, BarChart3, Info, Wallet } from 'lucide-react';
 
 export default function ProjectDetailsPage({ params }: { params: { id: string } }) {
     const { user } = useAuth();
