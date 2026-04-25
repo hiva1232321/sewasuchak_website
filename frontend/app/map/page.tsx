@@ -151,7 +151,7 @@ export default function MapPage() {
     const onUnmount = useCallback(() => setMap(null), []);
 
     useEffect(() => {
-        fetch('http://localhost:3001/issues')
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/issues`)
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
@@ -244,7 +244,7 @@ export default function MapPage() {
                             <div className="p-0 min-w-[280px]">
                                 <div className="relative h-32 w-full bg-slate-200 rounded-t-lg overflow-hidden">
                                     {selectedIssue.imageUrl ? (
-                                        <img src={`http://localhost:3001${selectedIssue.imageUrl}`} alt={selectedIssue.title} className="w-full h-full object-cover" />
+                                        <img src={`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}${selectedIssue.imageUrl}`} alt={selectedIssue.title} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-slate-400 bg-slate-100"><span className="text-xs">No Image</span></div>
                                     )}

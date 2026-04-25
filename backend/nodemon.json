@@ -1,0 +1,14 @@
+
+{
+  "watch": ["src"],
+  "ext": "ts,js,json",
+  "ignore": [
+    "src/**/*.spec.ts",
+    "prisma/*.db",
+    "prisma/*.db-journal",
+    "uploads/*",
+    "node_modules"
+  ],
+  "delay": 1000,
+  "exec": "ts-node src/index.ts"
+}

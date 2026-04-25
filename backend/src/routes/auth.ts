@@ -8,7 +8,7 @@ import { authMiddleware } from '../middleware/authMiddleware';
 const { sendOtpEmail } = require('../nodemailer');
 
 const router = Router();
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 function generateOtp(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();

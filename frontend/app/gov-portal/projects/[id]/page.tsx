@@ -26,7 +26,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
 
     const fetchProjectDetails = async () => {
         try {
-            const res = await fetch(`http://localhost:3001/projects/${id}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/projects/${id}`);
             if (!res.ok) {
                 if (res.status === 404) throw new Error("Project not found");
                 throw new Error("Failed to fetch project details");
@@ -57,7 +57,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
             if (updateStatus && updateStatus !== project.status) bodyData.status = updateStatus;
             if (updateImageUrl) bodyData.imageUrl = updateImageUrl;
 
-            const res = await fetch(`http://localhost:3001/projects/${id}/updates`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/projects/${id}/updates`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

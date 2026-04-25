@@ -55,7 +55,7 @@ export default function DuplicateCheck({ location, category }: DuplicateCheckPro
                 });
 
                 console.log(`[DuplicateCheck] Fetching: http://localhost:3001/issues/nearby?${query}`);
-                const res = await fetch(`http://localhost:3001/issues/nearby?${query}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/issues/nearby?${query}`);
                 if (res.ok) {
                     const data = await res.json();
                     console.log("[DuplicateCheck] Response:", data);

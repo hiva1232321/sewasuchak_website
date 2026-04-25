@@ -97,12 +97,12 @@ export default function StatusCard({
                         </div>
                         <div className="relative aspect-video w-full rounded-lg overflow-hidden border border-green-200 bg-gray-100 group">
                             <img
-                                src={`http://localhost:3001${proofImageUrl}`}
+                                src={`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}${proofImageUrl}`}
                                 alt="Resolution Proof"
                                 className="w-full h-full object-cover"
                             />
                             <a
-                                href={`http://localhost:3001${proofImageUrl}`}
+                                href={`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}${proofImageUrl}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"

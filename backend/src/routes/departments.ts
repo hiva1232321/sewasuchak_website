@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 // Get all departments
 router.get('/', async (req: Request, res: Response) => {

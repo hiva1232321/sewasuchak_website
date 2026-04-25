@@ -33,7 +33,7 @@ export default function GovIssuesPage() {
     useEffect(() => {
         const fetchIssues = async () => {
             try {
-                const res = await fetch('http://localhost:3001/issues');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/issues`);
                 if (res.ok) {
                     const data = await res.json();
                     setIssues(data);

@@ -1,15 +1,18 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './lib/prisma';
 
 dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Health Check
@@ -61,10 +64,13 @@ import issueRoutes from './routes/issues';
 import authRoutes from './routes/auth';
 import projectRoutes from './routes/projects';
 import departmentRoutes from './routes/departments';
+import adminRoutes from './routes/admin';
+
 app.use('/issues', issueRoutes);
 app.use('/auth', authRoutes);
 app.use('/projects', projectRoutes);
 app.use('/departments', departmentRoutes);
+app.use('/admin', adminRoutes);
 
 // Seed initial data (for development)
 const seedInitialData = async () => {
@@ -160,8 +166,14 @@ const seedInitialData = async () => {
         }
     }
 };
-seedInitialData();
+if (process.env.NODE_ENV !== 'production') {
+    seedInitialData();
+}
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+export default app;

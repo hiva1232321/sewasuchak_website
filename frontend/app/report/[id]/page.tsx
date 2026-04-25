@@ -75,7 +75,7 @@ export default function ReportDetailPage() {
 
         const fetchIssue = async () => {
             try {
-                const res = await fetch(`http://localhost:3001/issues/${id}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/issues/${id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setIssue(data);
@@ -106,7 +106,7 @@ export default function ReportDetailPage() {
         setVoting(true);
 
         try {
-            const res = await fetch(`http://localhost:3001/issues/${issue.id}/vote`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/issues/${issue.id}/vote`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id })
@@ -205,13 +205,13 @@ export default function ReportDetailPage() {
                                                 <video
                                                     controls
                                                     className="w-full h-full object-contain"
-                                                    src={`http://localhost:3001${item.url}`}
+                                                    src={`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}${item.url}`}
                                                 >
                                                     Your browser does not support the video tag.
                                                 </video>
                                             ) : (
                                                 <img
-                                                    src={`http://localhost:3001${item.url}`}
+                                                    src={`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}${item.url}`}
                                                     alt={`Evidence ${idx + 1}`}
                                                     className="w-full h-full object-contain"
                                                     onError={(e) => {

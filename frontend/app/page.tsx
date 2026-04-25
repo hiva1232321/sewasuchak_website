@@ -14,7 +14,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    fetch('http://localhost:3001/issues?priority=HIGH')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/issues?priority=HIGH`)
       .then(res => res.json())
       .then(data => {
         // Ensure data is array
@@ -24,7 +24,7 @@ export default function Home() {
       })
       .catch(err => console.error(err));
 
-    fetch('http://localhost:3001/stats')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/stats`)
       .then(res => res.json())
       .then(data => {
         setStats({
@@ -203,7 +203,7 @@ export default function Home() {
                   <div className="w-full sm:w-48 h-32 rounded-xl bg-slate-800 overflow-hidden relative">
                     {alert.imageUrl ? (
                       <img
-                        src={`http://localhost:3001${alert.imageUrl}`}
+                        src={`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}${alert.imageUrl}`}
                         alt={alert.title}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />

@@ -39,7 +39,7 @@ export default function NearbyIssueTracker() {
 
             try {
                 const { lat, lng } = locationRef.current;
-                const res = await fetch(`http://localhost:3001/issues/nearby?lat=${lat}&lng=${lng}&radius=100`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/issues/nearby?lat=${lat}&lng=${lng}&radius=100`);
                 if (!res.ok) return;
 
                 const data = await res.json();
@@ -87,7 +87,7 @@ export default function NearbyIssueTracker() {
                 const body: any = {};
                 if (user?.id) body.userId = user.id;
 
-                await fetch(`http://localhost:3001/issues/${issueId}/vote`, {
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/issues/${issueId}/vote`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)

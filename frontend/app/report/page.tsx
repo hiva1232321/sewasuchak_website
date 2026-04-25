@@ -94,7 +94,7 @@ export default function ReportPage() {
         setOtpError('');
 
         try {
-            const response = await fetch('http://localhost:3001/auth/send-report-otp', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-report-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ export default function ReportPage() {
 
         try {
             // Step 1: Verify OTP
-            const verifyRes = await fetch('http://localhost:3001/auth/verify-report-otp', {
+            const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/verify-report-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ export default function ReportPage() {
         }
 
         try {
-            const response = await fetch('http://localhost:3001/issues', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/issues`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

@@ -6,7 +6,7 @@ import path from 'path';
 import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 // Configure Multer
 const storage = multer.diskStorage({

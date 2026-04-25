@@ -20,7 +20,7 @@ export default function LiveIssueTracker() {
 
     const fetchTrendingIssues = async () => {
         try {
-            const res = await fetch('http://localhost:3001/issues');
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/issues`);
             const data = await res.json();
 
             if (Array.isArray(data)) {

@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const savedToken = localStorage.getItem('auth_token');
         if (savedToken) {
             // Verify token by fetching user info
-            fetch('http://localhost:3001/auth/me', {
+            fetch('http://127.0.0.1:3001/auth/me', {
                 headers: { Authorization: `Bearer ${savedToken}` }
             })
                 .then(res => {

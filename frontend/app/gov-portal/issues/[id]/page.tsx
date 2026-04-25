@@ -49,7 +49,7 @@ export default function GovIssueDetailPage({ params }: { params: Promise<{ id: s
                 const body: any = {};
                 if (user?.id) body.userId = user.id;
 
-                await fetch(`http://localhost:3001/issues/${id}/vote`, {
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/issues/${id}/vote`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
@@ -65,7 +65,7 @@ export default function GovIssueDetailPage({ params }: { params: Promise<{ id: s
 
     useEffect(() => {
         if (user?.role === 'ADMIN') {
-            fetch('http://localhost:3001/departments')
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/departments`)
                 .then(res => res.json())
                 .then(data => setDepartments(data))
                 .catch(err => console.error(err));
@@ -75,7 +75,7 @@ export default function GovIssueDetailPage({ params }: { params: Promise<{ id: s
     useEffect(() => {
         const fetchIssue = async () => {
             try {
-                const res = await fetch(`http://localhost:3001/issues/${id}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/issues/${id}`);
                 if (res.ok) {
                     const data = await res.json();
                     setIssue(data);
@@ -108,7 +108,7 @@ export default function GovIssueDetailPage({ params }: { params: Promise<{ id: s
             if (departmentId) formData.append('departmentId', departmentId);
             if (proofImage) formData.append('proofImage', proofImage);
 
-            const res = await fetch(`http://localhost:3001/issues/${id}/status`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}`}/issues/${id}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`
