@@ -342,18 +342,7 @@ router.post('/send-report-otp', authMiddleware, async (req: Request, res: Respon
         console.log(`🔑 [REPORT OTP] ${user.email}: ${otpCode}`);
         await sendOtpEmail(user.email, otpCode, 'REPORT');
 
-        // Generate a stateless verification token (JWT)
-        // This allows verification to work on Vercel even if the server restarts or instances change
-        const otpToken = jwt.sign(
-            { email: user.email, code: otpCode, type: 'REPORT' },
-            getJwtSecret(),
-            { expiresIn: '10m' }
-        );
-
-        res.json({ 
-            message: 'Report verification OTP sent to your email',
-            otpToken // Send this to the client
-        });
+        res.json({ message: 'Report verification OTP sent to your email' });
     } catch (error) {
         console.error('Send report OTP error:', error);
         res.status(500).json({ error: 'Failed to send report OTP' });
@@ -412,22 +401,6 @@ router.post('/verify-report-otp', authMiddleware, async (req: Request, res: Resp
                     otpValid = true;
                 }
                 otpCache.delete(`${user.email}:REPORT`);
-            }
-        }
-
-        // 3. Try Stateless JWT Fallback (For Vercel Serverless reliability)
-        if (!otpValid && !isExpired && req.body.otpToken) {
-            try {
-                const decoded = jwt.verify(req.body.otpToken, getJwtSecret()) as any;
-                if (decoded.email === user.email && decoded.code === otpCodeString && decoded.type === 'REPORT') {
-                    otpValid = true;
-                }
-            } catch (err) {
-                console.error('Stateless OTP verification failed:', err);
-                // If JWT is expired, set isExpired
-                if (err instanceof jwt.TokenExpiredError) {
-                    isExpired = true;
-                }
             }
         }
 
