@@ -34,6 +34,7 @@ export default function ReportPage() {
     const [otpSent, setOtpSent] = useState(false);
     const [resendTimer, setResendTimer] = useState(0);
     const [canResend, setCanResend] = useState(false);
+    const [otpToken, setOtpToken] = useState(''); // New state for stateless verification
     const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Restore form state from sessionStorage (after login redirect)
@@ -94,7 +95,7 @@ export default function ReportPage() {
         setOtpError('');
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/send-report-otp`, {
+            const response = await fetch('http://localhost:3001/auth/send-report-otp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -104,6 +105,10 @@ export default function ReportPage() {
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
+
+            if (data.otpToken) {
+                setOtpToken(data.otpToken);
+            }
 
             setOtpSent(true);
             setResendTimer(60);
@@ -161,13 +166,13 @@ export default function ReportPage() {
 
         try {
             // Step 1: Verify OTP
-            const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/verify-report-otp`, {
+            const verifyRes = await fetch('http://localhost:3001/auth/verify-report-otp', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ code }),
+                body: JSON.stringify({ code, otpToken }),
             });
 
             const verifyData = await verifyRes.json();
@@ -202,7 +207,7 @@ export default function ReportPage() {
         }
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/issues`, {
+            const response = await fetch('http://localhost:3001/issues', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
