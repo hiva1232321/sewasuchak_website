@@ -34,7 +34,6 @@ export default function ReportPage() {
     const [otpSent, setOtpSent] = useState(false);
     const [resendTimer, setResendTimer] = useState(0);
     const [canResend, setCanResend] = useState(false);
-    const [otpToken, setOtpToken] = useState(''); // New state for stateless verification
     const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Restore form state from sessionStorage (after login redirect)
@@ -106,10 +105,6 @@ export default function ReportPage() {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
 
-            if (data.otpToken) {
-                setOtpToken(data.otpToken);
-            }
-
             setOtpSent(true);
             setResendTimer(60);
             setCanResend(false);
@@ -172,7 +167,7 @@ export default function ReportPage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ code, otpToken }),
+                body: JSON.stringify({ code }),
             });
 
             const verifyData = await verifyRes.json();
