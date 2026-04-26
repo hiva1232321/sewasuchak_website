@@ -9,6 +9,10 @@ const { sendOtpEmail } = require('../nodemailer');
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Memory cache fallback for Vercel Serverless + SQLite stateless issues
+const otpCache = new Map<string, { code: string, expiresAt: number }>();
+
 function generateOtp(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -56,18 +60,28 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Delete any existing OTPs for this email
-        await prisma.otp.deleteMany({ where: { email, type: 'SIGNUP' } });
+        try {
+            await prisma.otp.deleteMany({ where: { email, type: 'SIGNUP' } });
+        } catch (e) {}
 
         // Generate and save OTP
         const otpCode = generateOtp();
-        await prisma.otp.create({
-            data: {
-                email,
-                code: otpCode,
-                type: 'SIGNUP',
-                expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
-            }
-        });
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        
+        try {
+            await prisma.otp.create({
+                data: {
+                    email,
+                    code: otpCode,
+                    type: 'SIGNUP',
+                    expiresAt,
+                }
+            });
+        } catch (e) {
+            console.error('Failed to save OTP to DB, relying on memory cache:', e);
+        }
+        
+        otpCache.set(`${email}:SIGNUP`, { code: otpCode, expiresAt: expiresAt.getTime() });
 
         // Send OTP email
         console.log(`🔑 [SIGNUP OTP] ${email}: ${otpCode}`);
@@ -91,23 +105,51 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
         }
 
         const otpCodeString = String(code).trim();
+        
+        let otpValid = false;
+        let isExpired = false;
 
-        const otp = await prisma.otp.findFirst({
-            where: {
-                email,
-                code: otpCodeString,
-                type: 'SIGNUP',
+        try {
+            const otp = await prisma.otp.findFirst({
+                where: {
+                    email,
+                    code: otpCodeString,
+                    type: 'SIGNUP',
+                }
+            });
+
+            if (otp) {
+                if (otp.expiresAt < new Date()) {
+                    isExpired = true;
+                    await prisma.otp.delete({ where: { id: otp.id } }).catch(() => {});
+                } else {
+                    otpValid = true;
+                    await prisma.otp.delete({ where: { id: otp.id } }).catch(() => {});
+                }
             }
-        });
+        } catch (e) {
+            console.error('Failed to query OTP from DB:', e);
+        }
 
-        if (!otp) {
-            res.status(400).json({ error: 'Invalid OTP' });
+        if (!otpValid && !isExpired) {
+            const cached = otpCache.get(`${email}:SIGNUP`);
+            if (cached && cached.code === otpCodeString) {
+                if (cached.expiresAt < Date.now()) {
+                    isExpired = true;
+                } else {
+                    otpValid = true;
+                }
+                otpCache.delete(`${email}:SIGNUP`);
+            }
+        }
+
+        if (isExpired) {
+            res.status(400).json({ error: 'Expired OTP' });
             return;
         }
 
-        if (otp.expiresAt < new Date()) {
-            await prisma.otp.delete({ where: { id: otp.id } });
-            res.status(400).json({ error: 'Expired OTP' });
+        if (!otpValid) {
+            res.status(400).json({ error: 'Invalid OTP' });
             return;
         }
 
@@ -118,7 +160,9 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
         });
 
         // Clean up OTPs
-        await prisma.otp.deleteMany({ where: { email, type: 'SIGNUP' } });
+        try {
+            await prisma.otp.deleteMany({ where: { email, type: 'SIGNUP' } });
+        } catch (e) {}
 
         // Generate JWT
         const token = jwt.sign({ userId: user.id }, getJwtSecret(), { expiresIn: '7d' });
@@ -151,18 +195,30 @@ router.post('/resend-otp', async (req: Request, res: Response): Promise<void> =>
         }
 
         // Delete existing OTPs
-        await prisma.otp.deleteMany({ where: { email, type } });
+        try {
+            await prisma.otp.deleteMany({ where: { email, type } });
+        } catch (e) {}
+        
+        otpCache.delete(`${email}:${type}`);
 
         // Generate new OTP
         const otpCode = generateOtp();
-        await prisma.otp.create({
-            data: {
-                email,
-                code: otpCode,
-                type,
-                expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-            }
-        });
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        
+        try {
+            await prisma.otp.create({
+                data: {
+                    email,
+                    code: otpCode,
+                    type,
+                    expiresAt,
+                }
+            });
+        } catch (e) {
+            console.error('Failed to save OTP to DB, relying on memory cache:', e);
+        }
+        
+        otpCache.set(`${email}:${type}`, { code: otpCode, expiresAt: expiresAt.getTime() });
 
         console.log(`🔑 [RESEND OTP] ${email}: ${otpCode}`);
         await sendOtpEmail(email, otpCode, type);
@@ -259,17 +315,29 @@ router.post('/send-report-otp', authMiddleware, async (req: Request, res: Respon
         }
 
         // Delete existing report OTPs for this user
-        await prisma.otp.deleteMany({ where: { email: user.email, type: 'REPORT' } });
+        try {
+            await prisma.otp.deleteMany({ where: { email: user.email, type: 'REPORT' } });
+        } catch (e) {}
+        
+        otpCache.delete(`${user.email}:REPORT`);
 
         const otpCode = generateOtp();
-        await prisma.otp.create({
-            data: {
-                email: user.email,
-                code: otpCode,
-                type: 'REPORT',
-                expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-            }
-        });
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        
+        try {
+            await prisma.otp.create({
+                data: {
+                    email: user.email,
+                    code: otpCode,
+                    type: 'REPORT',
+                    expiresAt,
+                }
+            });
+        } catch (e) {
+            console.error('Failed to save OTP to DB, relying on memory cache:', e);
+        }
+        
+        otpCache.set(`${user.email}:REPORT`, { code: otpCode, expiresAt: expiresAt.getTime() });
 
         console.log(`🔑 [REPORT OTP] ${user.email}: ${otpCode}`);
         await sendOtpEmail(user.email, otpCode, 'REPORT');
@@ -298,28 +366,58 @@ router.post('/verify-report-otp', authMiddleware, async (req: Request, res: Resp
         }
 
         const otpCodeString = String(code).trim();
+        
+        let otpValid = false;
+        let isExpired = false;
 
-        const otp = await prisma.otp.findFirst({
-            where: {
-                email: user.email,
-                code: otpCodeString,
-                type: 'REPORT',
+        try {
+            const otp = await prisma.otp.findFirst({
+                where: {
+                    email: user.email,
+                    code: otpCodeString,
+                    type: 'REPORT',
+                }
+            });
+
+            if (otp) {
+                if (otp.expiresAt < new Date()) {
+                    isExpired = true;
+                    await prisma.otp.delete({ where: { id: otp.id } }).catch(() => {});
+                } else {
+                    otpValid = true;
+                    await prisma.otp.delete({ where: { id: otp.id } }).catch(() => {});
+                }
             }
-        });
-
-        if (!otp) {
-            res.status(400).json({ error: 'Invalid OTP' });
-            return;
+        } catch (e) {
+            console.error('Failed to query OTP from DB:', e);
         }
 
-        if (otp.expiresAt < new Date()) {
-            await prisma.otp.delete({ where: { id: otp.id } });
+        if (!otpValid && !isExpired) {
+            const cached = otpCache.get(`${user.email}:REPORT`);
+            if (cached && cached.code === otpCodeString) {
+                if (cached.expiresAt < Date.now()) {
+                    isExpired = true;
+                } else {
+                    otpValid = true;
+                }
+                otpCache.delete(`${user.email}:REPORT`);
+            }
+        }
+
+        if (isExpired) {
             res.status(400).json({ error: 'Expired OTP' });
             return;
         }
 
+        if (!otpValid) {
+            res.status(400).json({ error: 'Invalid OTP' });
+            return;
+        }
+
         // Clean up
-        await prisma.otp.deleteMany({ where: { email: user.email, type: 'REPORT' } });
+        try {
+            await prisma.otp.deleteMany({ where: { email: user.email, type: 'REPORT' } });
+        } catch (e) {}
 
         res.json({ message: 'Report OTP verified successfully', verified: true });
     } catch (error) {
