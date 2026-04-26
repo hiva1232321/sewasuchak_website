@@ -91,17 +91,24 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
             return;
         }
 
+        const otpCodeString = String(code).trim();
+
         const otp = await prisma.otp.findFirst({
             where: {
                 email,
-                code,
+                code: otpCodeString,
                 type: 'SIGNUP',
-                expiresAt: { gt: new Date() }
             }
         });
 
         if (!otp) {
-            res.status(400).json({ error: 'Invalid or expired OTP' });
+            res.status(400).json({ error: 'Invalid OTP' });
+            return;
+        }
+
+        if (otp.expiresAt < new Date()) {
+            await prisma.otp.delete({ where: { id: otp.id } });
+            res.status(400).json({ error: 'Expired OTP' });
             return;
         }
 
@@ -286,17 +293,29 @@ router.post('/verify-report-otp', authMiddleware, async (req: Request, res: Resp
             return;
         }
 
+        if (!code) {
+            res.status(400).json({ error: 'OTP code is required' });
+            return;
+        }
+
+        const otpCodeString = String(code).trim();
+
         const otp = await prisma.otp.findFirst({
             where: {
                 email: user.email,
-                code,
+                code: otpCodeString,
                 type: 'REPORT',
-                expiresAt: { gt: new Date() }
             }
         });
 
         if (!otp) {
-            res.status(400).json({ error: 'Invalid or expired OTP' });
+            res.status(400).json({ error: 'Invalid OTP' });
+            return;
+        }
+
+        if (otp.expiresAt < new Date()) {
+            await prisma.otp.delete({ where: { id: otp.id } });
+            res.status(400).json({ error: 'Expired OTP' });
             return;
         }
 
