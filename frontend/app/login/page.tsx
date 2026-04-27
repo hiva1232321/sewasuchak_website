@@ -38,7 +38,7 @@ function LoginForm() {
         setLoading(true);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/login`, {
+            const response = await fetch('http://localhost:3001/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -119,6 +119,7 @@ function LoginForm() {
                                     onChange={(e) => { setEmail(e.target.value); setError(''); }}
                                     placeholder="name@example.com"
                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition-all text-sm text-slate-800 placeholder:text-slate-400"
+                                    autocomplete="email"
                                 />
                             </div>
                         </div>
@@ -134,6 +135,7 @@ function LoginForm() {
                                     onChange={(e) => { setPassword(e.target.value); setError(''); }}
                                     placeholder="Enter your password"
                                     className="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition-all text-sm text-slate-800 placeholder:text-slate-400"
+                                    autocomplete="current-password"
                                 />
                                 <button
                                     type="button"
